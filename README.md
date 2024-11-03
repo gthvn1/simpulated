@@ -18,15 +18,14 @@ room for adding them.
 
 ### Basic Structure of an 8-byte Instruction
 
-To keep things simple, let’s design the 8-byte (64-bit) instruction with the following fields:
+To keep things simple, let’s design the 8-bytes (64-bits) instruction with the following fields:
 
 1. **Opcode (8 bits)**: Specifies the type of instruction (e.g., load, store, add, etc.).
-2. **Destination Register (4 bits)**: Indicates the register to write to or read from.
-3. **Source Register 1 (4 bits)**: Indicates a source register for the operation.
-4. **Source Register 2 / Immediate Flag (4 bits)**: Specifies a second source register for
-two-register operations or an immediate value flag.
-5. **Immediate Value / Address (32 bits)**: Encodes a memory address for load/store instructions
-or an immediate value for arithmetic operations.
+1. **Source Register 1 (8 bits)**: Indicates a source register for the operation.
+1. **Source Register 2 (8 bits)**: Specifies a second source register for two-register operations.
+1. **Destination Register (8 bits)**: Indicates the register to write to or read from.
+1. **Immediate Value / Address (32 bits)**: Encodes a memory address for load/store instructions
+or an immediate value for the move instruction.
 
 This structure fits within 64 bits and leaves room for several types of operations while
 providing flexibility for both immediate values and register-based operations.
@@ -38,15 +37,15 @@ Let’s define a basic set of instructions that operates on 4 general-purpose re
 
 1. **LOAD**: Load a value from memory into a register.
 2. **STORE**: Store a value from a register into memory.
-3. **ADD**: Add two registers or add a register and an immediate value.
-4. **SUB**: Subtract one register from another or subtract an immediate value from a register.
+3. **ADD**: Add two registers and save the result into a third one
+4. **SUB**: Subtract two registers and save the result into a third one
 5. **MOVE**: Move an immediate value into a register.
 
 ### Encoding Scheme
 
 For simplicity, let’s assume:
-- **Registers** are encoded in 4 bits, allowing us to use values `0000` to `0011` for
-registers `R0` to `R3`.
+- **Registers** are encoded in 8 bits, allowing us to use values `00` to `FF` for
+registers `R0` to `R255`.
 - **Opcodes** are encoded in 8 bits, allowing up to 256 different instructions
 (we’ll only use a few for now).
 - **Immediate/Address field** is 32 bits.
@@ -54,90 +53,72 @@ registers `R0` to `R3`.
 Here’s how each instruction looks in binary:
 
 1. **LOAD (opcode 0x01)**
-   Format: `LOAD dest_reg, [address]`
+   Format: `LOAD address, dest_reg`
    - **Opcode**: `00000001`
-   - **dest_reg**: Destination register to load data into (4 bits).
-   - **source_reg_1**: Not used (set to `0000`).
-   - **source_reg_2/immediate_flag**: Not used (set to `0000`).
+   - **source_reg_1**: Not used (set to `0`).
+   - **source_reg_2**: Not used (set to `0`).
+   - **dest_reg**: Destination register to load data into (8 bits).
    - **Immediate/Address**: Memory address (32 bits).
-   - **Example**: `LOAD R1, [0x00400000]`
+   - **Example**: `LOAD 0x00400000 R1`
      ```
-     Binary: 00000001 0001 0000 0000 000000000100000000000000
+     Binary: 00000001 00000000 00000000 00000001 00000000_00000000_00100000_00000000
      ```
 
 2. **STORE (opcode 0x02)**
-   Format: `STORE [address], source_reg`
+   Format: `STORE source_reg, address`
    - **Opcode**: `00000010`
-   - **dest_reg**: Not used (set to `0000`).
-   - **source_reg_1**: Register containing data to store (4 bits).
-   - **source_reg_2/immediate_flag**: Not used (set to `0000`).
+   - **source_reg_1**: Register containing data to store (8 bits).
+   - **source_reg_2**: Not used (set to `0`).
+   - **dest_reg**: Not used (set to `0`).
    - **Immediate/Address**: Memory address (32 bits).
-   - **Example**: `STORE [0x00400004], R2`
+   - **Example**: `STORE R2, 0x00400004`
      ```
-     Binary: 00000010 0000 0010 0000 000000000100000000000100
+     Binary: 00000010 00000010 00000000 00000000 00000000_00000000_00100000_00000000
      ```
 
 3. **ADD (opcode 0x03)**
-   Format: `ADD dest_reg, src_reg_1, src_reg_2`
+   Format: `ADD src_reg_1, src_reg_2, dest_reg`
    - **Opcode**: `00000011`
-   - **dest_reg**: Destination register for the result (4 bits).
-   - **source_reg_1**: First operand register (4 bits).
-   - **source_reg_2/immediate_flag**: Second operand register (4 bits).
-   - **Immediate/Address**: Not used (set to `00000000`).
+   - **source_reg_1**: First operand register (8 bits).
+   - **source_reg_2**: Second operand register (8 bits).
+   - **dest_reg**: Destination register for the result (8 bits).
+   - **Immediate/Address**: Not used (set to `0`).
    - **Example**: `ADD R0, R1, R2`
      ```
-     Binary: 00000011 0000 0001 0010 000000000000000000000000
+     Binary: 00000011 00000000 00000001 00000010 00000000_00000000_00000000_00000000
      ```
 
 4. **SUB (opcode 0x04)**
-   Format: `SUB dest_reg, src_reg_1, src_reg_2`
+   Format: `SUB src_reg_1, src_reg_2, dest_reg`
    - **Opcode**: `00000100`
-   - **dest_reg**: Destination register for the result (4 bits).
-   - **source_reg_1**: First operand register (4 bits).
-   - **source_reg_2/immediate_flag**: Second operand register (4 bits).
-   - **Immediate/Address**: Not used (set to `00000000`).
+   - **source_reg_1**: First operand register (8 bits).
+   - **source_reg_2**: Second operand register (8 bits).
+   - **dest_reg**: Destination register for the result (8 bits).
+   - **Immediate/Address**: Not used (set to `0`).
    - **Example**: `SUB R1, R2, R3`
      ```
-     Binary: 00000100 0001 0010 0011 000000000000000000000000
+     Binary: 00000100 00000001 00000010 00000011 00000000_00000000_00000000_00000000
      ```
 
 5. **MOVE (opcode 0x05)**
-   Format: `MOVE dest_reg, immediate_value`
+   Format: `MOVE immediate_value, dest_reg`
    - **Opcode**: `00000101`
-   - **dest_reg**: Destination register (4 bits).
-   - **source_reg_1**: Not used (set to `0000`).
-   - **source_reg_2/immediate_flag**: Immediate flag (set to `0001` to indicate immediate mode).
+   - **source_reg_1**: Not used (set to `0`).
+   - **source_reg_2**: Not used (set to `0`).
+   - **dest_reg**: Destination register (8 bits).
    - **Immediate/Address**: Immediate value to load (32 bits).
-   - **Example**: `MOVE R2, 0x0000000A`
+   - **Example**: `MOVE 0xCAFEDECA, R2`
      ```
-     Binary: 00000101 0010 0000 0001 00000000000000000000001010
+     Binary: 00000101 00000000 00000000 00000010 11001010_11111110_11011110_11001010
      ```
 
-### Summary Table
+### Code example
 
 Here is a simple assembly code:
 ```asm
-LOAD R1, [0x00400000]
-STORE [0x00400000], R2
-ADD R0, R1, R2
-SUB R1, R2, R3
-MOVE R2, 0x00400004
+LOAD 0x00400000, R1     # Load value at @0x00400000 into register R1
+STORE R2, 0x00400000    # Store value in R2 at @0x00400000
+ADD R0, R1, R2          # Add R0 and R2 and store result in R2: R0 + R1 -> R2
+SUB R1, R2, R3          # Sub R1 and R2 and store result in R3: R1 - R2 -> R3
+MOVE 0xBAD0CAFE, R2     # Move 0xBAD0CAFE into R2
 ```
-
-| Instruction | Binary Representation                          | Description                              |
-|-------------|-----------------------------------------------|------------------------------------------|
-| `LOAD R1, [0x00400000]` | `00000001 0001 0000 0000 000000000100000000000000` | Load from memory address into `R1`      |
-| `STORE [0x00400004], R2`| `00000010 0000 0010 0000 000000000100000000000100` | Store `R2` to memory address            |
-| `ADD R0, R1, R2`        | `00000011 0000 0001 0010 000000000000000000000000` | Add `R1` and `R2`, store in `R0`        |
-| `SUB R1, R2, R3`        | `00000100 0001 0010 0011 000000000000000000000000` | Subtract `R3` from `R2`, store in `R1`  |
-| `MOV R2, 0x0000000A`    | `00000101 0010 0000 0001 00000000000000000000001010` | Load immediate `0x0000000A` into `R2`   |
-
-### Explanation of Each Field
-
-- **Opcode**: Identifies the instruction type.
-- **Destination Register (dest_reg)**: Register to store the result of the operation.
-- **Source Register 1 (source_reg_1)**: Primary source register for the instruction.
-- **Source Register 2 / Immediate Flag**: Either a second source register or a flag for immediate mode.
-- **Immediate/Address**: Memory address for load/store instructions or an immediate value for arithmetic operations.
-
-This simple setup is enough to load values into registers, store values from registers into memory, and perform basic arithmetic operations. It gives you a foundation for more complex instructions later on while keeping encoding straightforward.
