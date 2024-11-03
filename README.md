@@ -1,4 +1,4 @@
-# *Simp*le em*ulator*
+# **Simp**le em**ulator**
 
 A simple emumator. We will create our own ISA with few instructions and emulate them.
 
