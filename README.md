@@ -50,7 +50,28 @@ registers `R0` to `R255`.
 (we’ll only use a few for now).
 - **Immediate/Address field** is 32 bits.
 
-Here’s how each instruction looks in binary:
+### Summary table
+
+| Instruction        | Symbolic         | Description                            |
+|--------------------|------------------|----------------------------------------|
+| `LOAD 0x4321, Rx`  | Mem@0x4321 -> Rx | Load data at Mem[0x4321] into Rx       |
+| `STORE Rx, 0x1234` | Rx -> Mem@0x1234 | Store data in Rx into Mem[0x4321]      |
+| `ADD Rx, Ry, Rz`   | Rx + Ry -> Rz    | Add Rx and Ry and store result into Rz |
+| `SUB Rx, Ry, Rz`   | Rx - Ry -> Rz    | Sub Rx and Ry and store result into Rz |
+| `MOV 0xCAFE, Rx`   | 0xCAFE -> Rx     | Store the immediate 0xCAFE into Rx     |
+
+### Code example
+
+Here is a simple assembly code that added `2989` and `51966` and store the result at
+address 0x1234 in memory:
+```asm
+MOVE 0xBAD, R0
+MOVE 0xCAFE, R1
+ADD R0, R1, R2
+STORE R2, 0x1234
+```
+
+### Binary translation
 
 1. **LOAD (opcode 0x01)**
    Format: `LOAD address, dest_reg`
@@ -111,14 +132,3 @@ Here’s how each instruction looks in binary:
      ```
      Binary: 00000101 00000000 00000000 00000010 11001010_11111110_11011110_11001010
      ```
-
-### Code example
-
-Here is a simple assembly code:
-```asm
-LOAD 0x00400000, R1     # Load value at @0x00400000 into register R1
-STORE R2, 0x00400000    # Store value in R2 at @0x00400000
-ADD R0, R1, R2          # Add R0 and R2 and store result in R2: R0 + R1 -> R2
-SUB R1, R2, R3          # Sub R1 and R2 and store result in R3: R1 - R2 -> R3
-MOVE 0xBAD0CAFE, R2     # Move 0xBAD0CAFE into R2
-```
