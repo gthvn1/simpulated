@@ -40,7 +40,7 @@ Let’s define a basic set of instructions that operates on 4 general-purpose re
 2. **STORE**: Store a value from a register into memory.
 3. **ADD**: Add two registers or add a register and an immediate value.
 4. **SUB**: Subtract one register from another or subtract an immediate value from a register.
-5. **MOV**: Move an immediate value into a register.
+5. **MOVE**: Move an immediate value into a register.
 
 ### Encoding Scheme
 
@@ -101,14 +101,14 @@ Here’s how each instruction looks in binary:
      Binary: 00000100 0001 0010 0011 000000000000000000000000
      ```
 
-5. **MOV (opcode 0x05)**
-   Format: `MOV dest_reg, immediate_value`
+5. **MOVE (opcode 0x05)**
+   Format: `MOVE dest_reg, immediate_value`
    - **Opcode**: `00000101`
    - **dest_reg**: Destination register (4 bits).
    - **source_reg_1**: Not used (set to `0000`).
    - **source_reg_2/immediate_flag**: Immediate flag (set to `0001` to indicate immediate mode).
    - **Immediate/Address**: Immediate value to load (32 bits).
-   - **Example**: `MOV R2, 0x0000000A`
+   - **Example**: `MOVE R2, 0x0000000A`
      ```
      Binary: 00000101 0010 0000 0001 00000000000000000000001010
      ```
