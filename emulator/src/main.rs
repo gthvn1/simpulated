@@ -1,4 +1,4 @@
-use emulator::cpu::Cpu;
+use emulator::vm::cpu::Cpu;
 
 static PROGRAM: &str = "
 MOVE 0xBAD, R0

@@ -36,10 +36,10 @@ Let’s define a basic set of instructions that operates on 4 general-purpose re
 (`R0` to `R3`) and perform the following operations:
 
 1. **LOAD**: Load a value from memory into a register.
-2. **STORE**: Store a value from a register into memory.
-3. **ADD**: Add two registers and save the result into a third one
-4. **SUB**: Subtract two registers and save the result into a third one
-5. **MOVE**: Move an immediate value into a register.
+1. **STORE**: Store a value from a register into memory.
+1. **MOVE**: Move an immediate value into a register.
+1. **ADD**: Add two registers and save the result into a third one
+1. **SUB**: Subtract two registers and save the result into a third one
 
 ### Encoding Scheme
 
@@ -52,29 +52,33 @@ registers `R0` to `R255`.
 
 ### Summary table
 
-| Instruction        | Symbolic         | Description                            |
-|--------------------|------------------|----------------------------------------|
-| `LOAD 0x4321, Rx`  | Mem@0x4321 -> Rx | Load data at Mem[0x4321] into Rx       |
-| `STORE Rx, 0x1234` | Rx -> Mem@0x1234 | Store data in Rx into Mem[0x4321]      |
-| `ADD Rx, Ry, Rz`   | Rx + Ry -> Rz    | Add Rx and Ry and store result into Rz |
-| `SUB Rx, Ry, Rz`   | Rx - Ry -> Rz    | Sub Rx and Ry and store result into Rz |
-| `MOV 0xCAFE, Rx`   | 0xCAFE -> Rx     | Store the immediate 0xCAFE into Rx     |
+| Instruction       | Symbolic         | Description                            |
+|-------------------|------------------|----------------------------------------|
+| `LOAD 0x4321 Rx`  | Mem@0x4321 -> Rx | Load data at Mem[0x4321] into Rx       |
+| `STORE Rx 0x1234` | Rx -> Mem@0x1234 | Store data in Rx into Mem[0x4321]      |
+| `ADD Rx Ry Rz`    | Rx + Ry -> Rz    | Add Rx and Ry and store result into Rz |
+| `SUB Rx Ry Rz`    | Rx - Ry -> Rz    | Sub Rx and Ry and store result into Rz |
+| `MOV 0xCAFE Rx`   | 0xCAFE -> Rx     | Store the immediate 0xCAFE into Rx     |
 
 ### Code example
 
 Here is a simple assembly code that added `2989` and `51966` and store the result at
 address 0x1234 in memory:
+
 ```asm
-MOVE 0xBAD, R0
-MOVE 0xCAFE, R1
-ADD R0, R1, R2
-STORE R2, 0x1234
+MOVE 0xBAD  R0
+MOVE 0xCAFE  R1
+ADD R0  R1  R2
+STORE R2  0x1234
 ```
+
+We are expecting one instruction per line and each part of the instruction are separated
+by one or more spaces or tabs.
 
 ### Binary translation
 
 1. **LOAD (opcode 0x01)**
-   Format: `LOAD address, dest_reg`
+   Format: `LOAD address dest_reg`
    - **Opcode**: `00000001`
    - **source_reg_1**: Not used (set to `0`).
    - **source_reg_2**: Not used (set to `0`).
@@ -85,8 +89,8 @@ STORE R2, 0x1234
      Binary: 00000001 00000000 00000000 00000001 00000000_00000000_00100000_00000000
      ```
 
-2. **STORE (opcode 0x02)**
-   Format: `STORE source_reg, address`
+1. **STORE (opcode 0x02)**
+   Format: `STORE source_reg_1 address`
    - **Opcode**: `00000010`
    - **source_reg_1**: Register containing data to store (8 bits).
    - **source_reg_2**: Not used (set to `0`).
@@ -97,38 +101,39 @@ STORE R2, 0x1234
      Binary: 00000010 00000010 00000000 00000000 00000000_00000000_00100000_00000000
      ```
 
-3. **ADD (opcode 0x03)**
-   Format: `ADD src_reg_1, src_reg_2, dest_reg`
+1. **MOVE (opcode 0x03)**
+   Format: `MOVE immediate_value dest_reg`
    - **Opcode**: `00000011`
-   - **source_reg_1**: First operand register (8 bits).
-   - **source_reg_2**: Second operand register (8 bits).
-   - **dest_reg**: Destination register for the result (8 bits).
-   - **Immediate/Address**: Not used (set to `0`).
-   - **Example**: `ADD R0, R1, R2`
-     ```
-     Binary: 00000011 00000000 00000001 00000010 00000000_00000000_00000000_00000000
-     ```
-
-4. **SUB (opcode 0x04)**
-   Format: `SUB src_reg_1, src_reg_2, dest_reg`
-   - **Opcode**: `00000100`
-   - **source_reg_1**: First operand register (8 bits).
-   - **source_reg_2**: Second operand register (8 bits).
-   - **dest_reg**: Destination register for the result (8 bits).
-   - **Immediate/Address**: Not used (set to `0`).
-   - **Example**: `SUB R1, R2, R3`
-     ```
-     Binary: 00000100 00000001 00000010 00000011 00000000_00000000_00000000_00000000
-     ```
-
-5. **MOVE (opcode 0x05)**
-   Format: `MOVE immediate_value, dest_reg`
-   - **Opcode**: `00000101`
    - **source_reg_1**: Not used (set to `0`).
    - **source_reg_2**: Not used (set to `0`).
    - **dest_reg**: Destination register (8 bits).
    - **Immediate/Address**: Immediate value to load (32 bits).
    - **Example**: `MOVE 0xCAFEDECA, R2`
      ```
-     Binary: 00000101 00000000 00000000 00000010 11001010_11111110_11011110_11001010
+     Binary: 00000011 00000000 00000000 00000010 11001010_11111110_11011110_11001010
      ```
+
+1. **ADD (opcode 0x04)**
+   Format: `ADD src_reg_1 src_reg_2 dest_reg`
+   - **Opcode**: `00000100`
+   - **source_reg_1**: First operand register (8 bits).
+   - **source_reg_2**: Second operand register (8 bits).
+   - **dest_reg**: Destination register for the result (8 bits).
+   - **Immediate/Address**: Not used (set to `0`).
+   - **Example**: `ADD R0, R1, R2`
+     ```
+     Binary: 00000100 00000000 00000001 00000010 00000000_00000000_00000000_00000000
+     ```
+
+1. **SUB (opcode 0x05)**
+   Format: `SUB src_reg_1 src_reg_2 dest_reg`
+   - **Opcode**: `00000101`
+   - **source_reg_1**: First operand register (8 bits).
+   - **source_reg_2**: Second operand register (8 bits).
+   - **dest_reg**: Destination register for the result (8 bits).
+   - **Immediate/Address**: Not used (set to `0`).
+   - **Example**: `SUB R1, R2, R3`
+     ```
+     Binary: 00000101 00000001 00000010 00000011 00000000_00000000_00000000_00000000
+     ```
+

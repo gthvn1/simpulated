@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::vm::insn;
+
 const INSN_SIZE: usize = 128; // We can load 128 instructions
 const DATA_SIZE: usize = 1024;
 const REGS: usize = 256; // We have 256 registers
@@ -41,7 +43,16 @@ impl Cpu {
     }
 
     pub fn load(&mut self, program: &str) {
-        let _ = program;
+        // The program is loaded at offset 0 of insn
+        let mut idx: usize = 0;
+        for s in program.split("\n") {
+            if s.is_empty() {
+                continue;
+            }
+            println!("{} -> {}", idx, s);
+            insn::decode(s);
+            idx += 1;
+        }
         todo!("load the program");
     }
 
