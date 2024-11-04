@@ -2,6 +2,17 @@
 
 A simple emumator. We will create our own ISA with few instructions and emulate them.
 
+## Table of contents
+- [ISA](#isa)
+- [Structure of instruction](#basic-structure-of-an-8-byte-instruction)
+- [Instruction Set](#instruction-set)
+- [Encoding Scheme](#encoding-scheme)
+- [Code example](#code-example)
+- [Binary translation](#binary-translation)
+- [How to run simulator](#how-to-run-simulator)
+
+---
+
 ## ISA
 
 We will start by creating a simple, fixed-size instruction set architecture (ISA). It
@@ -137,3 +148,6 @@ by one or more spaces or tabs.
      Binary: 00000101 00000001 00000010 00000011 00000000_00000000_00000000_00000000
      ```
 
+## How to run simulator?
+
+- `cargo run`
