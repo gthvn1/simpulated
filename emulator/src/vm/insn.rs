@@ -1,4 +1,4 @@
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Opcode {
     Load = 1,
     Store,
@@ -8,7 +8,6 @@ pub enum Opcode {
 }
 
 impl Opcode {
-    #[allow(dead_code)]
     pub fn from_u64(value: u64) -> Option<Opcode> {
         match value {
             x if x == Opcode::Load as u64 => Some(Opcode::Load),
@@ -54,13 +53,14 @@ impl Insn {
     const DEST_SHIFT: u8 = 32;
     const DEST_MASK: u64 = 0x000000FF_00000000;
 
+    const IMMEDIATE_SHIFT: u64 = 0;
     const IMMEDIATE_MASK: u64 = 0x00000000_FFFFFFFF;
 
     pub fn new(v: u64) -> Self {
         Insn(v)
     }
 
-    pub fn to_u64(&self) -> u64 {
+    pub fn to_u64(self) -> u64 {
         self.0
     }
 
@@ -86,12 +86,27 @@ impl Insn {
 
     fn set_immediate(&mut self, imm: u32) {
         self.0 &= !Insn::IMMEDIATE_MASK;
-        self.0 |= (imm as u64) & Insn::IMMEDIATE_MASK;
+        self.0 |= ((imm as u64) << Insn::IMMEDIATE_SHIFT) & Insn::IMMEDIATE_MASK;
     }
 
-    #[allow(dead_code)]
-    pub fn get_opcode(insn: u64) -> Option<Opcode> {
-        Opcode::from_u64(insn & Insn::OPCODE_MASK >> Insn::OPCODE_SHIFT)
+    pub fn get_opcode(self) -> Option<Opcode> {
+        Opcode::from_u64((self.0 & Insn::OPCODE_MASK) >> Insn::OPCODE_SHIFT)
+    }
+
+    pub fn get_src1(self) -> u8 {
+        ((self.0 & Insn::SRC1_MASK) >> Insn::SRC1_SHIFT) as u8
+    }
+
+    pub fn get_src2(self) -> u8 {
+        ((self.0 & Insn::SRC2_MASK) >> Insn::SRC2_SHIFT) as u8
+    }
+
+    pub fn get_dest(self) -> u8 {
+        ((self.0 & Insn::DEST_MASK) >> Insn::DEST_SHIFT) as u8
+    }
+
+    pub fn get_immediate(self) -> u32 {
+        ((self.0 & Insn::IMMEDIATE_MASK) >> Insn::IMMEDIATE_SHIFT) as u32
     }
 
     pub fn bin_translation(s: &str) -> Insn {

@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::vm::insn::Insn;
+use crate::vm::insn::{Insn, Opcode};
 
 const INSN_SIZE: usize = 128; // We can load 128 instructions
 const DATA_SIZE: usize = 1024;
@@ -18,13 +18,15 @@ pub struct Cpu {
 
 impl fmt::Display for Cpu {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Print the first ten instructions
-        writeln!(f, "ip: {}", self.ip)?;
-        writeln!(f, "first instructions:")?;
         let nb = 5;
+
+        writeln!(f, "ip: {}", self.ip)?;
+
+        writeln!(f, "first instructions:")?;
         for idx in 0..nb {
             writeln!(f, "  insn[{}]: {}", idx, self.insn[idx])?;
         }
+
         writeln!(f, "first data:")?;
         for idx in 0..nb {
             writeln!(f, "  data[{}]: {}", idx, self.data[idx])?;
@@ -69,17 +71,55 @@ impl Cpu {
         }
     }
 
-    fn step(&self) {
-        let insn = self.insn[self.ip];
-        println!("TODO: Emulate {}", insn);
+    fn step(&mut self) -> bool {
+        let insn = Insn::new(self.insn[self.ip]);
+        let opcode = match insn.get_opcode() {
+            Some(op) => op,
+            None => return false,
+        };
+        match opcode {
+            Opcode::Load => {
+                let mem = insn.get_immediate() as usize;
+                let dest = insn.get_dest() as usize;
+                self.regs[dest] = self.data[mem];
+            }
+            Opcode::Store => {
+                let mem = insn.get_immediate() as usize;
+                let src1 = insn.get_src1() as usize;
+                self.data[mem] = self.regs[src1];
+            }
+            Opcode::Move => {
+                let imm = insn.get_immediate();
+                let reg = insn.get_dest() as usize;
+                self.regs[reg] = imm;
+            }
+            Opcode::Add => {
+                let src1 = insn.get_src1() as usize;
+                let src2 = insn.get_src2() as usize;
+                let dest = insn.get_dest() as usize;
+                self.regs[dest] = self.regs[src1] + self.regs[src2];
+            }
+            Opcode::Sub => {
+                let src1 = insn.get_src1() as usize;
+                let src2 = insn.get_src2() as usize;
+                let dest = insn.get_dest() as usize;
+                self.regs[dest] = self.regs[src1] - self.regs[src2];
+            }
+        }
+        self.ip += 1;
+        true
     }
 
-    pub fn run(&self, debug: bool) {
-        let _ = debug;
+    pub fn run(&mut self, debug: bool) {
         loop {
-            println!("Emulate one step and break");
-            self.step();
-            break;
+            if !self.step() {
+                println!("No more steps...");
+                break;
+            }
+
+            if debug {
+                println!("CPU state:\n{}", self);
+            }
         }
     }
 }

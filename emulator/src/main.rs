@@ -12,7 +12,6 @@ fn main() {
     println!("New CPU created");
     vm.load(PROGRAM);
     println!("CODE [{}] Loaded", PROGRAM);
-    println!("CPU state:\n{}", vm);
     println!("Starting emulation...");
     vm.run(true);
 }
