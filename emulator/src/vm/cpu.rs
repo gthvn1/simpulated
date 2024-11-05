@@ -18,10 +18,24 @@ pub struct Cpu {
 
 impl fmt::Display for Cpu {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "first insn: {}", self.insn[0])?;
-        writeln!(f, "first data: {}", self.data[0])?;
+        // Print the first ten instructions
         writeln!(f, "ip: {}", self.ip)?;
-        writeln!(f, "regs[0]: {}", self.regs[0])
+        writeln!(f, "first instructions:")?;
+        let nb = 5;
+        for idx in 0..nb {
+            writeln!(f, "  insn[{}]: {}", idx, self.insn[idx])?;
+        }
+        writeln!(f, "first data:")?;
+        for idx in 0..nb {
+            writeln!(f, "  data[{}]: {}", idx, self.data[idx])?;
+        }
+
+        writeln!(f, "first registers:")?;
+        for idx in 0..nb {
+            writeln!(f, "  regs[{}]: {}", idx, self.regs[idx])?;
+        }
+
+        Ok(())
     }
 }
 
@@ -49,11 +63,9 @@ impl Cpu {
             if s.is_empty() {
                 continue;
             }
-            println!("{} -> {}", idx, s);
-            insn::decode(s);
+            self.insn[idx] = insn::bin_translation(s);
             idx += 1;
         }
-        todo!("load the program");
     }
 
     pub fn run(&self, debug: bool) {

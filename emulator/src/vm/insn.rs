@@ -39,7 +39,7 @@ fn parse_number(input: &str) -> Result<i32, String> {
     }
 }
 
-pub fn decode(s: &str) -> u64 {
+pub fn bin_translation(s: &str) -> u64 {
     let delimiters = [' ', '\t'];
     let mut insns = s
         .split(|c| delimiters.contains(&c))
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn testing_load_insn() {
-        let result: u64 = decode("load 0x1234 r1");
+        let result: u64 = bin_translation("load 0x1234 r1");
         let expected: u64 = 0b00000001_00000000_00000000_00000001_00000000000000000001001000110100;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn testing_store_insn() {
-        let result: u64 = decode("store r1 0x1234");
+        let result: u64 = bin_translation("store r1 0x1234");
         let expected: u64 = 0b00000010_00000001_00000000_00000000_00000000000000000001001000110100;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
@@ -181,7 +181,7 @@ mod tests {
 
     #[test]
     fn testing_move_lowercase_insn() {
-        let result: u64 = decode("move 0xbad r120");
+        let result: u64 = bin_translation("move 0xbad r120");
         let expected: u64 = 0b00000011_00000000_00000000_01111000_00000000000000000000101110101101;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn testing_move_mixedcase_insn() {
-        let result: u64 = decode("Move 0xBAD r120");
+        let result: u64 = bin_translation("Move 0xBAD r120");
         let expected: u64 = 0b00000011_00000000_00000000_01111000_00000000000000000000101110101101;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn testing_move_tabs_spaces_insn() {
-        let result: u64 = decode("\t   move\t0xbad       r120");
+        let result: u64 = bin_translation("\t   move\t0xbad       r120");
         let expected: u64 = 0b00000011_00000000_00000000_01111000_00000000000000000000101110101101;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
@@ -205,7 +205,7 @@ mod tests {
 
     #[test]
     fn testing_add_insn() {
-        let result: u64 = decode("add r10 r20 r42");
+        let result: u64 = bin_translation("add r10 r20 r42");
         let expected: u64 = 0b00000100_00001010_00010100_00101010_00000000000000000000000000000000;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
@@ -213,7 +213,7 @@ mod tests {
 
     #[test]
     fn testing_sub_insn() {
-        let result: u64 = decode("sub r10 r20 r42");
+        let result: u64 = bin_translation("sub r10 r20 r42");
         let expected: u64 = 0b00000101_00001010_00010100_00101010_00000000000000000000000000000000;
         println!("result: {:0b}, expected {:0b}", result, expected);
         assert_eq!(result, expected);
