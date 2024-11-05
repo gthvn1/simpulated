@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::vm::insn;
+use crate::vm::insn::Insn;
 
 const INSN_SIZE: usize = 128; // We can load 128 instructions
 const DATA_SIZE: usize = 1024;
@@ -63,13 +63,23 @@ impl Cpu {
             if s.is_empty() {
                 continue;
             }
-            self.insn[idx] = insn::bin_translation(s);
+            let instruction = Insn::bin_translation(s);
+            self.insn[idx] = instruction.to_u64();
             idx += 1;
         }
     }
 
+    fn step(&self) {
+        let insn = self.insn[self.ip];
+        println!("TODO: Emulate {}", insn);
+    }
+
     pub fn run(&self, debug: bool) {
         let _ = debug;
-        todo!("run the program");
+        loop {
+            println!("Emulate one step and break");
+            self.step();
+            break;
+        }
     }
 }
