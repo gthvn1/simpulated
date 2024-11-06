@@ -13,5 +13,5 @@ fn main() {
     vm.load(PROGRAM);
     println!("CODE [{}] Loaded", PROGRAM);
     println!("Starting emulation...");
-    vm.run(true);
+    vm.run();
 }

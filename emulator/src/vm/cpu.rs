@@ -1,4 +1,8 @@
-use std::fmt;
+use prettytable::{format, Cell, Row, Table};
+use std::{
+    fmt,
+    io::{self, Write},
+};
 
 use crate::vm::insn::{Insn, Opcode};
 
@@ -110,16 +114,107 @@ impl Cpu {
         true
     }
 
-    pub fn run(&mut self, debug: bool) {
+    pub fn run(&mut self) {
+        // Display the initial step
+        self.display_cpu_state();
+
         loop {
             if !self.step() {
-                println!("No more steps...");
+                println!("Emulation done...");
                 break;
             }
 
-            if debug {
-                println!("CPU state:\n{}", self);
-            }
+            // Sleep 3 seconds to show CPU state
+            std::thread::sleep(std::time::Duration::from_secs(3));
+            self.display_cpu_state();
+            println!("Next step in 3 seconds...");
         }
+    }
+
+    fn display_cpu_state(&self) {
+        // Clear the terminal screen
+        print!("\x1B[2J\x1B[1;1H"); // ANSI escape code to clear screen
+        io::stdout().flush().unwrap();
+
+        // ===============================================================================
+        // INSTRUCTION TABLE
+        let mut insn_table = Table::new();
+
+        // Set table format to remove borders from title row
+        insn_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
+
+        // Colored title (ANSI escape code for blue text)
+        let insn_title = "\x1b[34m\x1b[48;5;15mFirst Instructions\x1b[0m"; // Blue color
+        let mut insn_title_cell = Cell::new(insn_title).with_hspan(2);
+        insn_title_cell.align(prettytable::format::Alignment::CENTER);
+        insn_table.add_row(Row::new(vec![insn_title_cell]));
+
+        insn_table.add_row(Row::new(vec![Cell::new("Index"), Cell::new("Instruction")]));
+        for idx in 0..5 {
+            let instruction = if idx == self.ip {
+                format!("\x1b[31m0x{:016x}\x1b[0m", self.insn[idx]) // Red color
+            } else {
+                format!("0x{:016x}", self.insn[idx])
+            };
+            insn_table.add_row(Row::new(vec![
+                Cell::new(&format!("{}", idx)),
+                Cell::new(&instruction),
+            ]));
+        }
+        insn_table.printstd();
+
+        // ===============================================================================
+        // DATA TABLE
+        let mut data_table = Table::new();
+        data_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
+        let data_title = "\x1b[34m\x1b[48;5;15mFirst Data\x1b[0m"; // Blue color
+        let mut data_title_cell = Cell::new(data_title).with_hspan(2);
+        data_title_cell.align(prettytable::format::Alignment::CENTER);
+        data_table.add_row(Row::new(vec![data_title_cell]));
+
+        data_table.add_row(Row::new(vec![Cell::new("Index"), Cell::new("Data")]));
+        for idx in 0..5 {
+            data_table.add_row(Row::new(vec![
+                Cell::new(&format!("{}", idx)),
+                Cell::new(&format!("0x{:016x}", self.data[idx])),
+            ]));
+        }
+        data_table.printstd();
+
+        // ===============================================================================
+        // REGISTERS TABLE
+        let mut regs_table = Table::new();
+        regs_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
+        let regs_title = "\x1b[34m\x1b[48;5;15mFirst Registers\x1b[0m"; // Blue color
+        let mut regs_title_cell = Cell::new(regs_title).with_hspan(10);
+        regs_title_cell.align(prettytable::format::Alignment::CENTER);
+        regs_table.add_row(Row::new(vec![regs_title_cell]));
+
+        // First row with registers from 0 to 10
+        regs_table.add_row(Row::new(
+            (0..10).map(|i| Cell::new(&format!("Reg[{}]", i))).collect(),
+        ));
+        regs_table.add_row(Row::new(
+            (0..10)
+                .map(|i| Cell::new(&format!("0x{:08x}", self.regs[i])))
+                .collect(),
+        ));
+
+        // Second row with registers from 10 to 20
+        regs_table.add_row(Row::new(
+            (10..20)
+                .map(|i| Cell::new(&format!("Reg[{}]", i)))
+                .collect(),
+        ));
+        regs_table.add_row(Row::new(
+            (10..20)
+                .map(|i| Cell::new(&format!("0x{:08x}", self.regs[i])))
+                .collect(),
+        ));
+        regs_table.printstd();
+
+        // ===============================================================================
+        // DISPLAY IP
+        println!("Instruction Pointer: {}", self.ip);
     }
 }
